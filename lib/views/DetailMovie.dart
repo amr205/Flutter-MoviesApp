@@ -305,7 +305,10 @@ class _DetailMovieState extends State<DetailMovie> {
         )
         ]
       ),
-      body: Column(
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+       if( orientation == Orientation.portrait){
+         return Column(
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
           showVideo(),
@@ -347,7 +350,58 @@ class _DetailMovieState extends State<DetailMovie> {
               ),
             ),
         ],
-      )
+      );
+       }else{
+         return Row(
+           children: <Widget>[
+             Container(
+               width: 300,
+               child: Column(
+                 children: <Widget>[
+                   showVideo(),
+          
+                 ],
+               )
+             
+             ),
+             Expanded(child: ListView(
+                  children: <Widget>[
+                    overViewTitle,
+                    Wrap(
+                      children: <Widget>[
+                        Padding(padding: EdgeInsets.all(8),
+                      child: Text(widget.movie.overview, 
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          maxLines: 12,
+                          overflow: TextOverflow.visible,
+                        )
+                      ),
+                      castTitle,
+                    listCast==null ? Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Color(0xff48d6b4)))): 
+                    Container(
+                      height: 100,
+                      color: Color.fromRGBO(58, 66, 86, 1.0),
+                      child: 
+                      Scrollbar( 
+                        child: ListView.builder(
+                            itemCount: listCast == null ? 0 : listCast.length,
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (BuildContext context, int index){
+                              return castImage(listCast[index]);
+                            } 
+                          ),
+                        )
+                      ) 
+                      ],
+                      
+                    )
+                    ]
+                  ))
+           ],
+         );
+       }
+        }
+    )
     );
   }
 
