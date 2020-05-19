@@ -13,7 +13,10 @@ class Search extends StatefulWidget {
   _SearchState createState() => _SearchState();
 }
 
-class _SearchState extends State<Search> {
+class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Search>{
+  @override
+  bool get wantKeepAlive => true;
+
   Widget listItem(movie){
     return new GestureDetector(
       onTap: ()=>{

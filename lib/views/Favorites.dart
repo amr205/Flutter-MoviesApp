@@ -11,7 +11,7 @@ class Favorites extends StatefulWidget {
   _FavoritesState createState() => _FavoritesState();
 }
 
-class _FavoritesState extends State<Favorites> {
+class _FavoritesState extends State<Favorites> with AutomaticKeepAliveClientMixin<Favorites>{
   bool isLoading =false;
   List<Movie> listMovies;
 
@@ -118,4 +118,8 @@ class _FavoritesState extends State<Favorites> {
           .addPostFrameCallback((_) => getMovies());
 
     }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive =>  true;
 }

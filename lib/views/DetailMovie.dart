@@ -128,7 +128,16 @@ class _DetailMovieState extends State<DetailMovie> {
     Widget showVideo(){
       if(videoLoaded){
         if(_controller==null){
-          return Text("No video available");
+          return Padding(padding: EdgeInsets.only(top:15, bottom:15),
+          child: Center(
+            child: Text("No video available", 
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 16
+            ),
+            ),
+          ),
+          );
         }else{
           return YoutubePlayer(
             controller: _controller,

@@ -10,7 +10,7 @@ class Popular extends StatefulWidget {
   _PopularState createState() => _PopularState();
 }
 
-class _PopularState extends State<Popular> {
+class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Popular> {
 
   bool isLoading =false;
   List<Movie> listMovies;
@@ -115,5 +115,9 @@ class _PopularState extends State<Popular> {
           .addPostFrameCallback((_) => getMovies());
 
     }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 
 }

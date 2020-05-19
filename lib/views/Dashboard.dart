@@ -11,6 +11,7 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMixin{
   
   TabController controller;
+  
 
   @override
   void initState() {
@@ -33,7 +34,6 @@ class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMix
     return new Scaffold(
       // Set the TabBar view as the body of the Scaffold
       body: new Container(
-        color: Color.fromRGBO(58, 66, 86, 1.0),
         child: new Column(
           children: <Widget>[
             new Expanded(
@@ -49,8 +49,6 @@ class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMix
       ),
       // Set the bottom navigation bar
       bottomNavigationBar: new Material(
-        shadowColor: Colors.white,
-        elevation: 15.0,
         // set the color of the bottom navigation bar
         color: Color.fromRGBO(58, 66, 86, 1.0),
         // set the tab bar as the child of bottom navigation bar
