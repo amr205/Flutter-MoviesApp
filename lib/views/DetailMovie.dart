@@ -62,7 +62,7 @@ class _DetailMovieState extends State<DetailMovie> {
           );
         });
       }catch(e){
-        print("video not found");
+        
       }
       
       
@@ -149,7 +149,7 @@ class _DetailMovieState extends State<DetailMovie> {
         });
       }
     } on SocketException catch (_) {
-      print('not connected');
+      
       this.setState((){
           internetAvailable = false;
         });

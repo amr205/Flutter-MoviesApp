@@ -47,7 +47,7 @@ class _FavoritesState extends State<Favorites> with AutomaticKeepAliveClientMixi
           return "success";
       }
     } on SocketException catch (_) {
-      print("no internet");
+      
           this.setState((){
             internetAvailable = false;
             isLoading=true;
@@ -58,7 +58,7 @@ class _FavoritesState extends State<Favorites> with AutomaticKeepAliveClientMixi
           this.setState((){
             isLoading=false;
             listMovies=myLocalList;
-            print(myLocalList);
+            
           });
           await myDB.closeDatabase();
     }

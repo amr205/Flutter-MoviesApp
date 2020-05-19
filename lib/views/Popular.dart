@@ -33,7 +33,6 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
           isLoading=false;
           pageNum++;
           var newlistMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
-          print(newlistMovies);
           listMovies.addAll(newlistMovies);
         });
         
@@ -71,7 +70,6 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
           return "success";
         }
       } on SocketException catch (_) {
-          print("no internet");
           this.setState((){
             internetAvailable = false;
             isLoading=true;
@@ -82,7 +80,6 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
           this.setState((){
             isLoading=false;
             listMovies=myLocalList;
-            print(myLocalList);
           });
           await myDB.closeDatabase();
           return "success";
@@ -163,7 +160,7 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
                   return listItem(listMovies[index]);
                 }else{
                   getMoreData();
-                  return Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Color(0xff48d6b4)),));
                 }
               } 
             ),

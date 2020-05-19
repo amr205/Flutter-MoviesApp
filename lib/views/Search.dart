@@ -102,8 +102,7 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
         try {
           listMovie = (json.decode(response.body)['results'] as List);
         } catch (e) {
-          print("error to list");
-          print(e.toString());
+          
         }
         return List.generate(listMovie.length, (int index) {
           return Movie.fromJson(listMovie[index]);
@@ -119,15 +118,14 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
     
   }
   Future<List<Movie>> searchMovie(String search) async {
-    print("Text: "+search);
+    
     var response = await http.get(
       "https://api.themoviedb.org/3/search/movie?api_key=a990cce76dfdd087f319c77744243171&language=en-US&query="+search+"&page=1",
       headers: {
          "Accept": "application/json"
        },
     );
-    print(response.statusCode);
-    print(response.body);
+    
     return (json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
   }
 
