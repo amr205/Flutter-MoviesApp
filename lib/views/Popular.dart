@@ -11,10 +11,29 @@ class Popular extends StatefulWidget {
 }
 
 class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Popular> {
-
+  int pageNum = 2;
   bool isLoading =false;
   List<Movie> listMovies;
 
+  Future<String> getMoreData() async{
+   
+    var response = await http.get(
+      "https://api.themoviedb.org/3/movie/popular?api_key=a990cce76dfdd087f319c77744243171&page="+pageNum.toString(),
+      headers: {
+         "Accept": "application/json"
+       },
+    );
+    
+    this.setState((){
+      isLoading=false;
+      pageNum++;
+      var newlistMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
+      print(newlistMovies);
+      listMovies.addAll(newlistMovies);
+    });
+    
+    return "success";
+  }
   Future<String> getMovies() async{
     this.setState((){
       isLoading=true;
@@ -98,9 +117,14 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: isLoading ? Center(child: CircularProgressIndicator()): 
             ListView.builder(
-              itemCount: listMovies == null ? 0 : listMovies.length,
+              itemCount: listMovies == null ? 0 : listMovies.length+1,
               itemBuilder: (BuildContext context, int index){
-                return listItem(listMovies[index]);
+                if(index< listMovies.length){
+                  return listItem(listMovies[index]);
+                }else{
+                  getMoreData();
+                  return Center(child: CircularProgressIndicator());
+                }
               } 
             ),
         )
