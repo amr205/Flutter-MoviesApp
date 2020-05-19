@@ -21,17 +21,12 @@ class _DetailMovieState extends State<DetailMovie> {
   List<Cast> listCast;
   final _scaffoldKey = GlobalKey<ScaffoldState>(); 
 
-  YoutubePlayerController _controller = YoutubePlayerController(
-    initialVideoId: 'P6AaSMfXHbA',
-    flags: YoutubePlayerFlags(
-        autoPlay: false,
-        mute: false,
-    ),
-  );
+  YoutubePlayerController _controller = null;
+
   void initData(){
+    checkFavoriteStatus();
     getVideos();
     getCast();
-    checkFavoriteStatus();
   }
   Future<String> getVideos() async{
       var response = await http.get(
@@ -40,18 +35,22 @@ class _DetailMovieState extends State<DetailMovie> {
           "Accept": "application/json"
         },
       );
+      try{
+        this.setState((){
+          videoLoaded=true;
+          var videoKey =json.decode(response.body)['results'][0]['key'];
+          _controller = YoutubePlayerController(
+            initialVideoId: videoKey,
+            flags: YoutubePlayerFlags(
+                autoPlay: false,
+                mute: false,
+            ),
+          );
+        });
+      }catch(e){
+        print("video not found");
+      }
       
-      this.setState((){
-        videoLoaded=true;
-        var videoKey =json.decode(response.body)['results'][0]['key'];
-        _controller = YoutubePlayerController(
-          initialVideoId: videoKey,
-          flags: YoutubePlayerFlags(
-              autoPlay: false,
-              mute: false,
-          ),
-        );
-      });
       
       return "success";
   }
@@ -128,10 +127,15 @@ class _DetailMovieState extends State<DetailMovie> {
 
     Widget showVideo(){
       if(videoLoaded){
-        return YoutubePlayer(
-          controller: _controller,
-          showVideoProgressIndicator: true,
-        );
+        if(_controller==null){
+          return Text("No video available");
+        }else{
+          return YoutubePlayer(
+            controller: _controller,
+            showVideoProgressIndicator: true,
+          );
+        }
+        
       }else{
         return Center(child: CircularProgressIndicator());
       }

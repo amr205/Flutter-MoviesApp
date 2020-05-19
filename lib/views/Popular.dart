@@ -44,22 +44,43 @@ class _PopularState extends State<Popular> {
       },
       child: Card(
         child: Container(
-            decoration: BoxDecoration(color: Color.fromRGBO(64, 75, 96, .9)),
-            child: Padding(
-              padding: EdgeInsets.all(4.0),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Image.network(
-                    movie.backdropPath,
-                  ),
-                  Text(movie.title,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white))
-                ]
-              ),
-              ),
-            )
-      )
+        constraints: new BoxConstraints.expand(
+          height: 200.0,
+        ),
+        padding: new EdgeInsets.only(left: 0.0, bottom: 0.0, right: 0.0),
+        decoration: new BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          image: new DecorationImage(
+            image: new NetworkImage(movie.backdropPath),
+            fit: BoxFit.fitHeight,
+          ),
+        ),
+        child: new Stack(
+          children: <Widget>[
+            new Positioned(
+              left: 0.0,
+              bottom: 0.0,
+              right: 0.0,
+              child: new Container(                
+                decoration: new BoxDecoration(
+                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(4), bottomLeft: Radius.circular(4)),
+                  color: Colors.black45,
+                ),
+                child: 
+                    new Padding(padding: EdgeInsets.all(4),
+                    child: new Text(
+                      movie.title,
+                      overflow: TextOverflow.ellipsis,
+                      style: new TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.0,
+                      color: Colors.white,
+                  ))
+              ),)
+            ),
+          ],
+        )
+      ), )
     );  
   }
 
