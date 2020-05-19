@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flappy_search_bar/flappy_search_bar.dart';
 import 'package:movies_app/models/Movie.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
 
 import 'DetailMovie.dart';
 
@@ -16,6 +17,23 @@ class Search extends StatefulWidget {
 class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Search>{
   @override
   bool get wantKeepAlive => true;
+  bool internetAvailable = true;
+
+  Future<void> checkInternet()async{
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+         this.setState((){
+          internetAvailable = true;
+        });
+      }
+    } on SocketException catch (_) {
+      this.setState((){
+        internetAvailable = false;
+      });
+    }
+    return;
+  }
 
   Widget listItem(movie){
     return new GestureDetector(
@@ -67,22 +85,38 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
     );  
   }
   Future<List<Movie>> search(String search) async {
-    var response = await http.get(
-      "https://api.themoviedb.org/3/search/movie?api_key=a990cce76dfdd087f319c77744243171&language=en-US&query="+search+"&page=1",
-      headers: {
-         "Accept": "application/json"
-       },
-    );
-    var listMovie;
+
     try {
-      listMovie = (json.decode(response.body)['results'] as List);
-    } catch (e) {
-      print("error to list");
-      print(e.toString());
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        this.setState((){
+          internetAvailable = true;
+        });
+        var response = await http.get(
+          "https://api.themoviedb.org/3/search/movie?api_key=a990cce76dfdd087f319c77744243171&language=en-US&query="+search+"&page=1",
+          headers: {
+            "Accept": "application/json"
+          },
+        );
+        var listMovie;
+        try {
+          listMovie = (json.decode(response.body)['results'] as List);
+        } catch (e) {
+          print("error to list");
+          print(e.toString());
+        }
+        return List.generate(listMovie.length, (int index) {
+          return Movie.fromJson(listMovie[index]);
+        });
+      }
+    } on SocketException catch (_) {
+      this.setState((){
+          internetAvailable = false;
+        });
+      return new List<Movie>();
+
     }
-    return List.generate(listMovie.length, (int index) {
-      return Movie.fromJson(listMovie[index]);
-    });
+    
   }
   Future<List<Movie>> searchMovie(String search) async {
     print("Text: "+search);
@@ -102,7 +136,16 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
     return Scaffold(
       backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
       body: SafeArea(
-        child: Padding(
+        child: !(internetAvailable)? new GestureDetector(
+      onTap: ()=>{
+        checkInternet()
+      },
+      child: Center(
+          child: Text("Internet connection is required to search",
+          style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        )):
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: SearchBar<Movie>(
               iconActiveColor: Colors.white,
@@ -119,6 +162,14 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
       ),
     );
   }
+
+  @override
+    void initState() {
+      super.initState();
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => checkInternet());
+
+    }
 }
 
 class Post {

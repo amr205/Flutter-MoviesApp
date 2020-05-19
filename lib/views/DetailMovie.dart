@@ -5,6 +5,7 @@ import 'package:movies_app/models/Cast.dart';
 import 'package:movies_app/models/Movie.dart';
 import 'package:http/http.dart' as http;
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'dart:io';
 
 class DetailMovie extends StatefulWidget {
   final Movie movie;
@@ -18,15 +19,28 @@ class _DetailMovieState extends State<DetailMovie> {
 
   var videoLoaded = false;
   var isFavorite = false;
+  bool internetAvailable = true;
   List<Cast> listCast;
   final _scaffoldKey = GlobalKey<ScaffoldState>(); 
 
   YoutubePlayerController _controller = null;
 
-  void initData(){
-    checkFavoriteStatus();
-    getVideos();
-    getCast();
+  void initData() async{
+
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        checkFavoriteStatus();
+        getVideos();
+        getCast();
+      }
+    } on SocketException catch (_) {
+      this.setState((){
+        internetAvailable = false;
+        listCast = new List<Cast>();
+      });
+    }
+    
   }
   Future<String> getVideos() async{
       var response = await http.get(
@@ -86,36 +100,61 @@ class _DetailMovieState extends State<DetailMovie> {
   }
 
   Future<String> addToFavorites() async{
-     Map<String, String> header = {"Content-type":"application/json"};
-     String cadJson = '{"media_id":"'+widget.movie.id.toString()+'"}';
 
-     var response = await http.post(
-      "https://api.themoviedb.org/3/list/142655/add_item?api_key=a990cce76dfdd087f319c77744243171&session_id=8287094726b4b87b039e884164a7d8d7c3c186c5",
-      headers: header,
-      body: cadJson
-     );
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        Map<String, String> header = {"Content-type":"application/json"};
+        String cadJson = '{"media_id":"'+widget.movie.id.toString()+'"}';
 
-    this.setState((){
-      isFavorite=true;
-    });
+        var response = await http.post(
+          "https://api.themoviedb.org/3/list/142655/add_item?api_key=a990cce76dfdd087f319c77744243171&session_id=8287094726b4b87b039e884164a7d8d7c3c186c5",
+          headers: header,
+          body: cadJson
+        );
+
+        this.setState((){
+          internetAvailable = true;
+          isFavorite=true;
+        });
+      }
+    } on SocketException catch (_) {
+      this.setState((){
+          internetAvailable = false;
+        });
+    }
+     
  
     
     return "success";
   }
 
   Future<String> removeFromFavorites() async{
-     Map<String, String> header = {"Content-type":"application/json"};
-     String cadJson = '{"media_id":"'+widget.movie.id.toString()+'"}';
 
-     var response = await http.post(
-      "https://api.themoviedb.org/3/list/142655/remove_item?api_key=a990cce76dfdd087f319c77744243171&session_id=8287094726b4b87b039e884164a7d8d7c3c186c5",
-      headers: header,
-      body: cadJson
-     );
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        Map<String, String> header = {"Content-type":"application/json"};
+        String cadJson = '{"media_id":"'+widget.movie.id.toString()+'"}';
 
-    this.setState((){
-      isFavorite=false;
-    });
+        var response = await http.post(
+          "https://api.themoviedb.org/3/list/142655/remove_item?api_key=a990cce76dfdd087f319c77744243171&session_id=8287094726b4b87b039e884164a7d8d7c3c186c5",
+          headers: header,
+          body: cadJson
+        );
+
+        this.setState((){
+          isFavorite=false;
+          internetAvailable = true;
+        });
+      }
+    } on SocketException catch (_) {
+      print('not connected');
+      this.setState((){
+          internetAvailable = false;
+        });
+    }
+     
  
     
     return "success";
@@ -126,8 +165,8 @@ class _DetailMovieState extends State<DetailMovie> {
   Widget build(BuildContext context) {
 
     Widget showVideo(){
-      if(videoLoaded){
-        if(_controller==null){
+      if(videoLoaded||internetAvailable==false){
+        if(_controller==null||internetAvailable==false){
           return Padding(padding: EdgeInsets.only(top:15, bottom:15),
           child: Center(
             child: Text("No video available", 
@@ -146,7 +185,7 @@ class _DetailMovieState extends State<DetailMovie> {
         }
         
       }else{
-        return Center(child: CircularProgressIndicator());
+        return Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Color(0xff48d6b4))));
       }
     }
 
@@ -230,7 +269,7 @@ class _DetailMovieState extends State<DetailMovie> {
         IconButton(
           icon: isFavorite? Icon(
             Icons.star,
-            color: Color(0xff00d573),
+            color: Color(0xff48d6b4),
           ) :
           Icon(
             Icons.star_border,
@@ -239,14 +278,28 @@ class _DetailMovieState extends State<DetailMovie> {
           onPressed: () {
             if(isFavorite){
               removeFromFavorites();
-              final snackBar = SnackBar(content: Text('This movie was removed from favorites'),duration:Duration(seconds: 1));
+              if(internetAvailable){
+                final snackBar = SnackBar(content: Text('This movie was removed from favorites'),duration:Duration(seconds: 1));
               // Find the Scaffold in the widget tree and use it to show a SnackBar.
               _scaffoldKey.currentState.showSnackBar(snackBar);
+              }else{
+                final snackBar = SnackBar(content: Text('You need internet connection to use this feature'),duration:Duration(seconds: 1));
+              // Find the Scaffold in the widget tree and use it to show a SnackBar.
+              _scaffoldKey.currentState.showSnackBar(snackBar);
+              }
             }else{
               addToFavorites();
-              final snackBar = SnackBar(content: Text('This movie was added to favorites'),duration:Duration(seconds: 1),);
+              
+
+              if(internetAvailable){
+               final snackBar = SnackBar(content: Text('This movie was added to favorites'),duration:Duration(seconds: 1),);
               // Find the Scaffold in the widget tree and use it to show a SnackBar.
               _scaffoldKey.currentState.showSnackBar(snackBar);
+              }else{
+                final snackBar = SnackBar(content: Text('You need internet connection to use this feature'),duration:Duration(seconds: 1));
+              // Find the Scaffold in the widget tree and use it to show a SnackBar.
+              _scaffoldKey.currentState.showSnackBar(snackBar);
+              }
             }
           },
         )
@@ -274,7 +327,7 @@ class _DetailMovieState extends State<DetailMovie> {
                       ],
                     ),
                     castTitle,
-                    listCast==null ? Center(child: CircularProgressIndicator()): 
+                    listCast==null ? Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Color(0xff48d6b4)))): 
                     Container(
                       height: 100,
                       color: Color.fromRGBO(58, 66, 86, 1.0),

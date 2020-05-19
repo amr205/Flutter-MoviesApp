@@ -48,11 +48,9 @@ class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMix
         ),
       ),
       // Set the bottom navigation bar
-      bottomNavigationBar: new Material(
-        // set the color of the bottom navigation bar
-        color: Color.fromRGBO(58, 66, 86, 1.0),
-        // set the tab bar as the child of bottom navigation bar
+      bottomNavigationBar: Container(
         child: new TabBar(
+          
           unselectedLabelColor: Colors.grey,
           indicatorColor: Color(0xff48d6b4),
           labelColor: Color(0xff45ccab),
@@ -71,7 +69,19 @@ class _DashboardState extends State<Dashboard> with SingleTickerProviderStateMix
           // setup the controller
           controller: controller,
         ),
-      ),
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(58, 66, 86, 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 1,
+              offset: Offset(0, 3), // changes position of shadow
+            ),
+          ],
+        ) ,
+      )
+      
     );
   }
   

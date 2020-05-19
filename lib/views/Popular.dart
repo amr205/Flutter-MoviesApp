@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:movies_app/models/Movie.dart';
+import 'package:movies_app/models/MyDatabase.dart';
 import 'package:movies_app/views/DetailMovie.dart';
 
 class Popular extends StatefulWidget {
@@ -14,43 +16,79 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
   int pageNum = 2;
   bool isLoading =false;
   List<Movie> listMovies;
+  bool internetAvailable = true;
 
   Future<String> getMoreData() async{
-   
-    var response = await http.get(
-      "https://api.themoviedb.org/3/movie/popular?api_key=a990cce76dfdd087f319c77744243171&page="+pageNum.toString(),
-      headers: {
-         "Accept": "application/json"
-       },
-    );
-    
-    this.setState((){
-      isLoading=false;
-      pageNum++;
-      var newlistMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
-      print(newlistMovies);
-      listMovies.addAll(newlistMovies);
-    });
-    
+   try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        var response = await http.get(
+          "https://api.themoviedb.org/3/movie/popular?api_key=a990cce76dfdd087f319c77744243171&page="+pageNum.toString(),
+          headers: {
+            "Accept": "application/json"
+          },
+        );
+        
+        this.setState((){
+          isLoading=false;
+          pageNum++;
+          var newlistMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
+          print(newlistMovies);
+          listMovies.addAll(newlistMovies);
+        });
+        
+        return "success";
+      }
+    } on SocketException catch (_) {
+      return "success";
+    }
     return "success";
+    
   }
   Future<String> getMovies() async{
-    this.setState((){
-      isLoading=true;
-    });
-    var response = await http.get(
-      "https://api.themoviedb.org/3/movie/popular?api_key=a990cce76dfdd087f319c77744243171",
-      headers: {
-         "Accept": "application/json"
-       },
-    );
+      try {
+        final result = await InternetAddress.lookup('google.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          this.setState((){
+            isLoading=true;
+          });
+          var response = await http.get(
+            "https://api.themoviedb.org/3/movie/popular?api_key=a990cce76dfdd087f319c77744243171",
+            headers: {
+              "Accept": "application/json"
+            },
+          );
+          
+          this.setState((){
+            isLoading=false;
+            listMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
+            internetAvailable = true;
+          });
+           MyDatabase myDB = new MyDatabase();
+           await myDB.init();
+           await myDB.savePopular(listMovies);
+           await myDB.closeDatabase();
+          return "success";
+        }
+      } on SocketException catch (_) {
+          print("no internet");
+          this.setState((){
+            internetAvailable = false;
+            isLoading=true;
+          });
+          MyDatabase myDB = new MyDatabase();
+          await myDB.init();
+          var myLocalList = await myDB.getPopular();
+          this.setState((){
+            isLoading=false;
+            listMovies=myLocalList;
+            print(myLocalList);
+          });
+          await myDB.closeDatabase();
+          return "success";
+      }
+      return "success";
     
-    this.setState((){
-      isLoading=false;
-      listMovies=(json.decode(response.body)['results'] as List).map((i) => Movie.fromJson(i)).toList();
-    });
-    
-    return "success";
   }
 
   Widget listItem(movie){
@@ -70,7 +108,7 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
         decoration: new BoxDecoration(
           borderRadius: BorderRadius.circular(4),
           image: new DecorationImage(
-            image: new NetworkImage(movie.backdropPath),
+            image: internetAvailable? new NetworkImage(movie.backdropPath):  AssetImage("assets/images/placeholder.jpg"),
             fit: BoxFit.fitHeight,
           ),
         ),
@@ -115,7 +153,9 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: isLoading ? Center(child: CircularProgressIndicator()): 
+          child: isLoading ? Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Color(0xff48d6b4)), )): 
+          RefreshIndicator(
+            child: 
             ListView.builder(
               itemCount: listMovies == null ? 0 : listMovies.length+1,
               itemBuilder: (BuildContext context, int index){
@@ -127,6 +167,8 @@ class _PopularState extends State<Popular> with AutomaticKeepAliveClientMixin<Po
                 }
               } 
             ),
+              onRefresh: getMovies,)
+            
         )
       )
     );
